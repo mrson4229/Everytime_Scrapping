@@ -1,0 +1,55 @@
+from selenium import webdriver
+import csv
+#open chrome browser
+driver = webdriver.Chrome('C:\chromedriver\chromedriver')
+driver.get('https://everytime.kr/login')
+driver.find_element_by_name('userid').send_keys('****')
+driver.find_element_by_name('password').send_keys('****')
+#login
+driver.find_element_by_xpath('//*[@id="container"]/form/p[3]/input').click()
+#lecture evaluation
+driver.get('http://everytime.kr/lecture')
+
+
+# 20 lecture evaluations in 1 page. Objective is to scrape every evaluations on the website.
+# Say there are 999 pages on the website. Actually there are roughly 850 pages.
+x = list(range(1000))
+del x[0]
+# x = 1 ~ 999
+links = list(range(1000))
+# Making links for pages.
+for i in x:
+    links[i-1] = str('http://everytime.kr/lecture?campus_id=1&page=%s' %i)
+del links[999]
+
+#create csv file with header.
+# outputFile = open('','w',newline = '')
+# outputWriter = csv.writer(outputFile)
+# outputWriter.writerow(['title','campus','professor','semester','rating','hw','group','grade','atted','test'])
+# outputFile.close()
+
+# Scrapping 
+articles = list(range(1,21))
+
+for link in links:
+    outputFile = open('output.csv', 'a', newline='')
+    outputWriter = csv.writer(outputFile)
+    driver.get(link)
+    for article in articles:
+        driver.find_element_by_xpath(str('//*[@id="container"]/div/div/article[%s]/a' % article)).click()
+        title = driver.find_element_by_xpath('//*[@id="container"]/div[1]/div/h2').text
+        campus = driver.find_element_by_xpath('//*[@id="container"]/div[1]/div/p[1]/span').text
+        professor = driver.find_element_by_xpath('//*[@id="container"]/div[1]/div/p[2]/span').text
+        semester = driver.find_element_by_xpath('//*[@id="container"]/div[1]/div/p[3]/span').text
+        rating = driver.find_element_by_xpath('//*[@id="container"]/div[2]/div[1]/div[1]/span/span[1]').text
+        hw = driver.find_element_by_xpath('//*[@id="container"]/div[2]/div[1]/div[2]/p[1]/span').text
+        group = driver.find_element_by_xpath('//*[@id="container"]/div[2]/div[1]/div[2]/p[2]/span').text
+        grade = driver.find_element_by_xpath('//*[@id="container"]/div[2]/div[1]/div[2]/p[3]/span').text
+        attend = driver.find_element_by_xpath('//*[@id="container"]/div[2]/div[1]/div[2]/p[4]/span').text
+        test = driver.find_element_by_xpath('//*[@id="container"]/div[2]/div[1]/div[2]/p[5]/span').text
+        data = [title, campus, professor, semester, rating, hw, group, grade, attend, test]
+        outputWriter.writerow(data)
+        driver.get(link)
+    outputFile.close()
+    
+# After scraping is finished, create a database and sort, eliminate data.
